@@ -17,39 +17,52 @@ const handleBlogRouter = (req, resp) => {
   if (method === "GET" && path === "/api/blog/list") {
     const author = req.query.author || "";
     const keyword = req.query.keyword || "";
-    const listData = getList(author, keyword);
-    return new successModel(listData);
+    const result = getList(author, keyword);
+    return result.then((listData) => {
+      return new successModel(listData);
+    });
   }
 
   //Get blog detail
   if (method === "GET" && path === "/api/blog/detail") {
-    const detail = getDetail(id);
-    return new successModel(detail);
+    const result = getDetail(id);
+    return result.then((blogDetail) => {
+      return new successModel(blogDetail);
+    });
   }
 
   //write a new blog
   if (method === "POST" && path === "/api/blog/new") {
-    const data = newBlog(req.body);
-    return new successModel(data);
+    const author = "val";
+    req.body.author = author;
+    const result = newBlog(req.body);
+    return result.then((data) => {
+      return new successModel(data);
+    });
   }
 
   //update a blog
   if (method === "POST" && path === "/api/blog/update") {
-    const updateFlag = updateBlog(id, req.body);
-    if (updateFlag) {
-      return new successModel("Update Successful");
-    } else {
+    const updateResult = updateBlog(id, req.body);
+    return updateResult.then((updateFlag) => {
+      console.log(updateFlag);
+      if (updateFlag) {
+        return new successModel("Update Successful");
+      }
       return new errorModel("Update Failed");
-    }
+    });
   }
 
   //delete a blog
   if (method === "POST" && path === "/api/blog/delete") {
-    const deleteFlag = deleteBlog(id);
-    if (deleteFlag) {
-      return new successModel("Delete Successful");
-    }
-    return new errorModel("Delete Failed");
+    const author = "val";
+    const deleteResult = deleteBlog(id, author);
+    return deleteResult.then((deleteFlag) => {
+      if (deleteFlag) {
+        return new successModel("Delete Successful");
+      }
+      return new errorModel("Delete Failed");
+    });
   }
 };
 

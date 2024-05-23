@@ -1,7 +1,7 @@
 const env = process.env.NODE_ENV;
 let MYSQL_CONFIG;
 
-if (env === "dev") {
+if (env === "development") {
   MYSQL_CONFIG = {
     host: "localhost",
     user: "root",
@@ -12,7 +12,7 @@ if (env === "dev") {
 }
 if (env === "production") {
   MYSQL_CONFIG = {
-    host: "localhost",
+    Host: "localhost",
     user: "root",
     password: "rphqgmebrF1",
     port: "3306",

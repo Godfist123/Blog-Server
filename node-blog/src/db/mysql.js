@@ -10,6 +10,7 @@ const execSql = (sql) => {
     connection.query(sql, (err, result) => {
       if (err) {
         reject(err);
+        return;
       }
       resolve(result);
     });
