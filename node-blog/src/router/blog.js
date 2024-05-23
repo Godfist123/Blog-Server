@@ -7,6 +7,13 @@ const {
 } = require("../controller/blog");
 const { successModel, errorModel } = require("../model/resmodel");
 
+//verify login
+const loginCheck = (req) => {
+  if (!req.session.username) {
+    return Promise.resolve(new successModel(new errorModel("Login First !")));
+  }
+};
+
 const handleBlogRouter = (req, resp) => {
   const method = req.method;
   const url = req.url;
@@ -33,8 +40,13 @@ const handleBlogRouter = (req, resp) => {
 
   //write a new blog
   if (method === "POST" && path === "/api/blog/new") {
-    const author = "val";
-    req.body.author = author;
+    //verify login
+    const loginCheckResult = loginCheck(req);
+    if (loginCheckResult) {
+      return loginCheckResult;
+    }
+
+    req.body.author = req.session.username;
     const result = newBlog(req.body);
     return result.then((data) => {
       return new successModel(data);
@@ -43,6 +55,12 @@ const handleBlogRouter = (req, resp) => {
 
   //update a blog
   if (method === "POST" && path === "/api/blog/update") {
+    //verify login
+    const loginCheckResult = loginCheck(req);
+    if (loginCheckResult) {
+      return loginCheckResult;
+    }
+
     const updateResult = updateBlog(id, req.body);
     return updateResult.then((updateFlag) => {
       console.log(updateFlag);
@@ -55,8 +73,13 @@ const handleBlogRouter = (req, resp) => {
 
   //delete a blog
   if (method === "POST" && path === "/api/blog/delete") {
-    const author = "val";
-    const deleteResult = deleteBlog(id, author);
+    //verify login
+    const loginCheckResult = loginCheck(req);
+    if (loginCheckResult) {
+      return loginCheckResult;
+    }
+
+    const deleteResult = deleteBlog(id, req.session.username);
     return deleteResult.then((deleteFlag) => {
       if (deleteFlag) {
         return new successModel("Delete Successful");

@@ -1,9 +1,8 @@
 const handleBlogRouter = require("./src/router/blog");
 const handleUserRouter = require("./src/router/user");
 const queryString = require("querystring");
+const { get, set } = require("./src/db/redis");
 
-//session data
-let SESSION_DATA = {};
 const getCookieExpires = () => {
   const d = new Date();
   d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
@@ -56,56 +55,48 @@ const serverHandler = (req, resp) => {
   });
 
   //get Session
-  let sessionFlag = false;
-  let userId = req.cookie.userid;
-  if (userId) {
-    if (!SESSION_DATA[userId]) {
-      SESSION_DATA[userId] = {};
-    }
-  } else {
-    sessionFlag = true;
-    userId = `${Date.now()}`;
-    SESSION_DATA[userId] = {};
-  }
-  req.session = SESSION_DATA[userId];
+  let sessionFlag = !req.cookie.userid;
+  let userId = req.cookie.userid
+    ? req.cookie.userid.toString()
+    : Date.now().toString();
 
-  //add postData to req object
-  getPostData(req).then((postData) => {
-    req.body = postData;
+  (sessionFlag ? set(userId, {}) : Promise.resolve())
+    .then(() => {
+      console.log("111");
 
-    //handle blog router
-    const blogPromise = handleBlogRouter(req, resp);
-    if (blogPromise) {
+      return get(userId);
+    })
+    .then((val) => {
+      console.log("222");
+      const currentUser = val || {};
+      req.sessionId = userId;
+      req.session = currentUser;
+
       if (sessionFlag) {
         resp.setHeader(
           "Set-Cookie",
           `userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
         );
       }
-      blogPromise.then((blogData) => {
+
+      return getPostData(req);
+    })
+    .then((postData) => {
+      req.body = postData;
+      return handleBlogRouter(req, resp) || handleUserRouter(req, resp);
+    })
+    .then((blogData) => {
+      if (blogData) {
         resp.end(JSON.stringify(blogData));
-      });
-      return;
-    }
-
-    //handle user router
-    const userResult = handleUserRouter(req, resp);
-    if (userResult) {
-      if (sessionFlag) {
-        resp.setHeader(
-          "Set-Cookie",
-          `userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
-        );
+      } else {
+        resp.writeHead(404, { "Content-type": "text/plain" });
+        resp.end("404 NOT FOUND\n");
       }
-      userResult.then((data) => {
-        resp.end(JSON.stringify(data));
-      });
-      return;
-    }
-
-    resp.writeHead(404, { "Content-type": "text/plain" });
-    resp.write("404 NOT FOUND\n");
-    resp.end();
-  });
+    })
+    .catch((err) => {
+      console.error("Server Error:", err);
+      resp.writeHead(500);
+      resp.end(JSON.stringify({ error: "Internal server error" }));
+    });
 };
 module.exports = serverHandler;
