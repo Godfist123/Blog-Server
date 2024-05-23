@@ -16,26 +16,32 @@ redisClient.on("error", (error) => {
 redisClient.connect();
 
 const set = (key, val) => {
-  if (typeof val === "object") {
-    // Ensure val is properly serialized as a JSON string
-    val = JSON.stringify(val);
-  }
-  return new Promise((resolve, reject) => {
-    // Use a callback to handle the response from Redis
-    redisClient.set(key, val, (err, reply) => {
-      if (err) {
-        console.error(`Failed to set key ${key} in Redis:`, err);
-        reject(err); // Reject the promise if an error occurs
-      } else {
-        console.log(`Key ${key} set in Redis.`);
-        resolve(reply); // Resolve the promise with Redis' response
-      }
+  console.log("s==", key, val);
+  try {
+    if (typeof val === "object") {
+      // Ensure val is properly serialized as a JSON string
+      val = JSON.stringify(val);
+    }
+    return new Promise((resolve, reject) => {
+      // Use a callback to handle the response from Redis
+      redisClient.set(key, val, (err, reply) => {
+        if (err) {
+          console.error(`Failed to set key ${key} in Redis:`, err);
+          reject(err); // Reject the promise if an error occurs
+        } else {
+          console.log(`Key ${key} set in Redis.`);
+          resolve(reply); // Resolve the promise with Redis' response
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.log("seterr");
+  }
 };
 
 const get = (key) => {
   return new Promise((resolve, reject) => {
+    console.log("g", key);
     redisClient.get(key, (err, val) => {
       if (err) {
         console.error(`Error retrieving key ${key} from Redis:`, err);

@@ -23,12 +23,15 @@ const handleUserRouter = (req, resp) => {
 
   //login check
   if (method === "GET" && path === "/api/user/loginCheck") {
-    if (req.session.username) {
-      return Promise.resolve(
-        new successModel({ username: req.session.username })
-      );
+    try {
+      if (req.session.username) {
+        return Promise.resolve(
+          new successModel({ username: req.session.username })
+        );
+      }
+    } catch (error) {
+      return Promise.reject(new errorModel("Login First !"));
     }
-    return Promise.resolve(new errorModel("Login First !"));
   }
 };
 module.exports = handleUserRouter;

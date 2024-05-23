@@ -59,12 +59,17 @@ const serverHandler = (req, resp) => {
   let userId = req.cookie.userid
     ? req.cookie.userid.toString()
     : Date.now().toString();
-
-  (sessionFlag ? set(userId, {}) : Promise.resolve())
+  console
+    .log(
+      "sessionFlag",
+      sessionFlag
+    )(sessionFlag ? set(userId, {}) : Promise.resolve())
     .then(() => {
       console.log("111");
 
-      return get(userId);
+      return get(userId).then((res) => {
+        resp.end(res);
+      });
     })
     .then((val) => {
       console.log("222");
