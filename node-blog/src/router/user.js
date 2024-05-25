@@ -7,8 +7,8 @@ const handleUserRouter = (req, resp) => {
   const path = url.split("?")[0];
 
   //login
-  if (method === "GET" && path === "/api/user/login") {
-    const { username, password } = req.query;
+  if (method === "POST" && path === "/api/user/login") {
+    const { username, password } = req.body;
     const loginResult = login(username, password);
     return loginResult.then((data) => {
       if (data.username) {
