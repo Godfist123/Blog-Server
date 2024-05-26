@@ -72,7 +72,6 @@ const handleBlogRouter = (req, resp) => {
 
     const updateResult = updateBlog(id, req.body);
     return updateResult.then((updateFlag) => {
-      console.log(updateFlag);
       if (updateFlag) {
         return new successModel("Update Successful");
       }
