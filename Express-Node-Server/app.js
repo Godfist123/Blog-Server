@@ -1,6 +1,7 @@
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
+var fs = require("fs");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const blogRouter = require("./routes/blog");
@@ -27,7 +28,22 @@ app.use(
   })
 );
 
-app.use(logger("dev"));
+const ENV = process.env.NODE_ENV;
+if (ENV !== "production") {
+  app.use(logger("dev"));
+} else {
+  const logFileName = path.join(__dirname, "logs", "access.log");
+  const writeStream = fs.createWriteStream(logFileName, {
+    flags: "a",
+  });
+  app.use(
+    logger("combined", {
+      stream: writeStream,
+    })
+  );
+}
+
+// app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
