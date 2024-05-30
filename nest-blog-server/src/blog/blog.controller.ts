@@ -7,38 +7,50 @@ import {
   Query,
   Body,
   Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { BlogService } from './blog.service';
 
 @Controller('blog')
 export class BlogController {
+  constructor(private readonly blogService: BlogService) {}
+  // @Get('test')
+  // async test() {
+  //   throw new HttpException('test', HttpStatus.BAD_REQUEST);
+  // }
+
   @Get()
   async findAll(
     @Query('keyword') keyword: string,
     @Query('author') author: string,
   ) {
-    console.log('keyword', keyword);
-    console.log('author', author);
-    return ['a', 'b', 'c'];
+    return await this.blogService.findAll(author, keyword);
   }
+
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    console.log('id', id);
-    return 'aaa';
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const blog = await this.blogService.findOne(id);
+    return blog;
   }
+
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    console.log('delete id', id);
-    return { a: 'esew' };
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return await this.blogService.remove(id);
   }
+
   @Post()
   async create(@Body() createBlogDto: CreateBlogDto) {
-    console.log('createBlogDto', createBlogDto);
-    return 'ok';
+    createBlogDto.author = 'admin'; //temporary assign to data
+    const res = await this.blogService.create(createBlogDto);
+    return res;
   }
+
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateBlogDto: CreateBlogDto) {
-    console.log('updateBlogDto', updateBlogDto);
-    return 'ok';
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateBlogDto: CreateBlogDto,
+  ) {
+    return await this.blogService.update(id, updateBlogDto);
   }
 }
