@@ -8,9 +8,12 @@ import {
   Body,
   Patch,
   ParseIntPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { BlogService } from './blog.service';
+import { AuthGuard } from 'src/user/user.guard';
 
 @Controller('blog')
 export class BlogController {
@@ -39,9 +42,10 @@ export class BlogController {
     return await this.blogService.remove(id);
   }
 
+  @UseGuards(AuthGuard)
   @Post()
-  async create(@Body() createBlogDto: CreateBlogDto) {
-    createBlogDto.author = 'admin'; //temporary assign to data
+  async create(@Body() createBlogDto: CreateBlogDto, @Request() req: any) {
+    createBlogDto.author = req.user.username;
     const res = await this.blogService.create(createBlogDto);
     return res;
   }
